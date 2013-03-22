@@ -1,0 +1,619 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:WindowedApplication xmlns:fx="http://ns.adobe.com/mxml/2009" 
+					   xmlns:s="library://ns.adobe.com/flex/spark" 
+					   xmlns:mx="library://ns.adobe.com/flex/mx" creationComplete="onCreationCompleteHandler()" width="1000" height="600" title="作者：汪涛">
+	
+	<fx:Script>
+		<![CDATA[
+			import flash.utils.getTimer;
+			
+			import mx.graphics.codec.PNGEncoder;
+			import mx.managers.PopUpManager;
+			
+			
+			public static const BMP_DECODE:String="bmp_decode";
+			
+			public static const SWF_DECODE:String="swf_decode";
+			
+			public var decodeType:String="";
+			
+	
+			
+			
+			private var nativeProcessStartupInfo:NativeProcessStartupInfo;
+			private var cmdFile:File;
+			
+			private var constSavefile:File;
+			
+			private var openFile:File;
+			
+			private var openFileList:File;
+			
+			private var nativeProcess:NativeProcess;
+			
+			private var appPath:String;
+			
+			private var swfOpenFile:File;
+			private var frameList:Vector.<FrameData>;
+			
+			private var frameDataList:Array;
+			
+			private var alert:Alert=new Alert();
+			
+			
+			
+			
+			/////传入命令行的参数
+			private var argument:Vector.<String>;
+			
+			private var tempSvaeFile:File;
+			
+			private var fileList:Vector.<File>;
+			
+			private function onCreationCompleteHandler():void
+			{
+		//		var file:File=new File("d:\\temp\\test1.png.temp");
+		//		file.deleteFile();
+		//		
+		//		return ;
+				
+				fileList=new Vector.<File>
+				
+				this.constSavefile=new File("d:\\temp\\");
+			//	this.constSavefile=new File(File.applicationDirectory+"\\temp\\");
+			//	trace(constSavefile.nativePath);
+				tempSvaeFile=new File(constSavefile.nativePath);
+			//	trace(tempSvaeFile.nativePath);
+				
+				cmdFile=new File("C:\\WINDOWS\\system32\\cmd.exe");
+			//	cmdFile.resolvePath("C:\\WINDOWS\\system32\\cmd.exe");
+			//	cmdFile.resolvePath("c:\\Windows\\");
+		//		trace(cmdFile.nativePath);
+	
+		//		trace(cmdFile.exists);
+				
+				
+				
+				this.nativeProcessStartupInfo = new NativeProcessStartupInfo();
+				this.nativeProcessStartupInfo.executable = this.cmdFile;
+			
+				argument=new Vector.<String>;
+				argument.push("");
+				this.nativeProcessStartupInfo.arguments=argument;
+				
+				nativeProcess=new NativeProcess();
+			//	trace(NativeProcess.isSupported)
+				
+				if(nativeProcess.running==false)
+				nativeProcess.start(this.nativeProcessStartupInfo);
+				
+				nativeProcess.addEventListener(NativeProcessExitEvent.EXIT,onExitHandler);
+				nativeProcess.addEventListener(ProgressEvent.STANDARD_INPUT_PROGRESS,onStanderinputHandler);
+				nativeProcess.addEventListener(ProgressEvent.STANDARD_OUTPUT_DATA,onStanderOutputDataHandler);
+				nativeProcess.addEventListener(ProgressEvent.STANDARD_ERROR_DATA,onErrorDataHandler);
+				
+				var tempPath:File=File.applicationDirectory;
+	//			trace(tempPath.nativePath);
+				var cmdStr:String=tempPath.nativePath.replace(/([A-Z]:).*""([A-Z]:).*/g, "$1");
+			//	trace(cmdStr);
+				this.appPath=tempPath.nativePath;
+				runCommand(cmdStr);
+				this.runCommand("cd " + tempPath.nativePath);
+				timer=new Timer(1500);
+				timer.addEventListener(TimerEvent.TIMER,onTimerHandler);
+				timer.start();
+			}
+			
+			private function runCommand(param1:String) : void
+			{
+		//		trace("runCommand:      "+param1 + "\n", "gb2312");
+		//		writeText("input:  "+param1 + "\n");
+				this.nativeProcess.standardInput.writeMultiByte(param1 + "\n", "gb2312");
+		
+				return;
+			}
+			
+			private function JPEG_TO_ATF(param1:File, param2:File) : void
+			{
+				var _loc_3:String = null;
+				if (param1.exists)
+				{
+					//_loc_3 = "png2atf <?format?> <?-R?> <?mimap?>  -q " + int(this.hslider.value) + " -i  " + param1.nativePath + "  -o  " + this.getSaveFileName(param1);
+
+					_loc_3 = "png2atf <?format?> <?-R?> -i  " + param1.nativePath + "  -o  " + this.getSaveFileName(param1);
+					if (this.checkBox.selected)
+					{
+						_loc_3 = _loc_3.split("<?-R?>").join("-r");
+					}
+					else
+					{
+						_loc_3 = _loc_3.split("<?-R?>").join("");
+					}
+					if (this.radiogroup.selection == this.rdDXT5)
+					{
+						_loc_3 = _loc_3.split("<?format?>").join(" -c d ");
+					}
+					else if(this.radiogroup.selection == this.jpeg)
+					{
+						_loc_3 = _loc_3.split("<?format?>").join("-4");
+					}
+					else
+					{
+						_loc_3 = _loc_3.split("<?format?>").join("");
+					}
+				/*	if(this.selectMimap.selected==false)  ////是否生成Mimap
+					{
+						_loc_3 =_loc_3.split("<?mimap?>").join(" -n 0,0 ");
+					}
+					else
+					{
+						_loc_3 =_loc_3.split("<?mimap?>").join("");
+					}*/
+					this.runCommand(_loc_3);
+					;
+				}
+				return;
+			}
+			
+			private function getSaveFileName(param1:File) : String
+			{
+				
+				var str:String;
+			/*	if(this.radiogroup.selection==this.rdDXT5)
+				{
+					str=".dxt"
+				}
+				else if(this.radiogroup.selection==this.jpeg)
+				{
+					str=".*jpeg";
+				}
+				else if(this.radiogroup.selection==this.rgba)
+				{
+					str=".rgba";
+				}*/
+				str=frameDataList.length+".atf";
+				return param1.nativePath.substr(0, param1.nativePath.lastIndexOf(".")) +str;
+			//	return "d:\\temp\\temp\\"+param1.name.substr(0,param1.name.lastIndexOf("."))+str;
+			}// end function
+			
+			
+			private function onExitHandler(evt:NativeProcessExitEvent):void
+			{
+				trace("exit");
+			}
+			
+			private function onStanderinputHandler(evt:ProgressEvent):void
+			{
+			//	var progress:NativeProcess=evt.target  as NativeProcess;
+			//	var output:String=progress.standardInput.(progress.standardInput.bytesAvailable,"gb2312");
+			//	trace("input:"+output);
+			}
+			
+			private function onStanderOutputDataHandler(evt:ProgressEvent):void
+			{
+				if(timer.running==false)
+					timer.start();
+				var progress:NativeProcess=evt.target  as NativeProcess;
+				var output:String=progress.standardOutput.readMultiByte(progress.standardOutput.bytesAvailable,"gb2312");
+				
+				    writeText(output);
+					if(output.match(/\[In/g).length&&output.match(/\[Out/g).length)
+					{
+//					var str:String="ATF转换完成" + this.openFile.nativePath +"(size: "+(this.openFile.size/1024).toFixed(2)+ "k) -->" + this.getSaveFileName(this.tempWiteFile);
+//					writeText("\n"+str);
+					readATFfile(this.getSaveFileName(this.tempWiteFile));
+					deCodeNest();  /////文件夹转换
+					}			
+			/*	output = (output + "").split(this.appPath).join("");
+				output = output.replace(/\s\n""\s\n/gm, "");
+				var _loc_4:RegExp = /(\[In.*\])""(\[In.*\])/g;
+				output = output.replace(_loc_4, "$1<br>");
+				if (_loc_4.test(output))
+				{
+					if (this.taskFileList.length > 0)
+					{
+						this.outStr = "";
+					}
+					else
+					{
+						this.outStr = this.outStr + ("<font color=\'#00FF00\'>ATFת����ɣ�" + this.openfile.nativePath + " --> <font color=\'#00FFFF\'>" + this.getSaveFileName(this.openfile) + "</font></font><br><font color=\'#CCCCCC\'>" + _loc_3 + "</font>");
+					}
+				trace("8888888888888:"+"<font color=\'#00FF00\'>ATF转换完成" + this.openFile.nativePath + " --> <font color=\'#00FFFF\'>" + this.getSaveFileName(this.openFile) + "</font></font><br><font color=\'#CCCCCC\'>" + output + "</font>")
+			    }*/
+			}
+			
+			private function readATFfile(path:String):void
+			{
+				var file:File=new File(path);
+				var byte:ByteArray=new ByteArray();
+	//			trace(file.exists);
+				var stream:FileStream=new FileStream();
+				stream.open(file,FileMode.READ);
+				stream.readBytes(byte,0,stream.bytesAvailable);
+	//			trace(byte.bytesAvailable);
+				var source:ByteArray=frameDataList[frameDataList.length-1] as ByteArray;
+				source.writeInt(byte.length);
+				source.writeBytes(byte);
+				stream.close();
+				deleteTempFile();
+				decodeSwftoAtf(frameList);
+			/*	
+				var byte:ByteArray=new ByteArray();
+				var fileStream:FileStream=new FileStream();
+				fileStream.open(openFile,FileMode.READ);
+				fileStream.readBytes(byte,0,fileStream.bytesAvailable);*/
+			}
+			
+			private function onErrorDataHandler(evt:ProgressEvent):void
+			{
+				
+			}
+			
+			private function onSingerClick():void
+			{
+				this.openFile=File.desktopDirectory;
+				var fileFilter:FileFilter=new FileFilter("Images (*.jpg, *.jpeg, *.png)", "*.jpg; *.jpeg;  *.png");
+				openFile.addEventListener(Event.SELECT,onSelected);
+				openFile.browseForOpen("open",[fileFilter]);
+				
+			}
+			
+			private function onSelected(evt:Event=null):void
+			{
+				
+				var byte:ByteArray=readFile();
+				var load:Loader=new Loader();
+				load.contentLoaderInfo.addEventListener(Event.COMPLETE,onCompleteHandler);
+				load.contentLoaderInfo.addEventListener(IOErrorEvent.IO_ERROR,onErrorHandler);
+				load.loadBytes(byte);
+				popUpAlert();
+				
+			}
+			
+			private function onCompleteHandler(evt:Event):void
+			{
+				var loadInfo:LoaderInfo=evt.target as LoaderInfo;
+				loadInfo.removeEventListener(Event.COMPLETE,onCompleteHandler);
+				loadInfo.removeEventListener(IOErrorEvent.IO_ERROR,onErrorHandler);
+				
+				var bitmapdata:BitmapData=Bitmap(loadInfo.content).bitmapData;
+				if(bitmapdata)
+				//changeBitmapDataToAtf(bitmapdata);
+				{
+					frameList=new Vector.<FrameData>();
+					var framedata:FrameData=new FrameData();
+					framedata.width=bitmapdata.width;
+					framedata.height=bitmapdata.height;
+					framedata.bitmapdata=bitmapdata;
+					frameList.push(framedata);
+					decodeSwftoAtf(frameList);
+				}
+			}
+			
+			private var tempWiteFile:File;
+			private function changeBitmapDataToAtf(bitmapdata:BitmapData):void
+			{
+				var tagetBitMapdata:BitmapData;
+				if(bitmapdata)
+				{
+					tagetBitMapdata=getFixBitmapData(bitmapdata);
+					var writeByte:ByteArray;
+					var obj:flash.display.PNGEncoderOptions=new flash.display.PNGEncoderOptions();
+					var pngEncoder:JPEGXREncoderOptions=new JPEGXREncoderOptions(10,BitmapEncodingColorSpace.COLORSPACE_AUTO);
+					writeByte=tagetBitMapdata.encode(tagetBitMapdata.rect,obj);
+				//	var pngEncoder:PNGEncoder=new PNGEncoder();
+					
+				//	writeByte=pngEncoder.encode(tagetBitMapdata);
+				
+					// 写入Bitmapdata源数据测试用
+			//		ByteArray(frameDataList[frameDataList.length-1]).writeInt(writeByte.bytesAvailable);
+			//		ByteArray(frameDataList[frameDataList.length-1]).writeBytes(writeByte);
+					//
+					tagetBitMapdata.dispose();
+					tempWiteFile=new File(constSavefile.nativePath).resolvePath(openFile.name+".temp");
+					saveFile(tempWiteFile,writeByte);
+					JPEG_TO_ATF(tempWiteFile,this.openFile);
+				}	
+			}
+			
+			
+			private function getFixBitmapData(bitmapdata:BitmapData):BitmapData
+			{
+				var tagetBitMapdata:BitmapData;
+				var tagetwidth:int=getPow2(bitmapdata.width);
+				var tagetHeigh:int=getPow2(bitmapdata.height);
+				if(tagetwidth==bitmapdata.width&&tagetHeigh==bitmapdata.height)
+				{
+					tagetBitMapdata=bitmapdata.clone();
+				}
+				else
+				{
+					tagetBitMapdata=new BitmapData(tagetwidth,tagetHeigh,true,0);
+					tagetBitMapdata.draw(bitmapdata);
+				}
+				return tagetBitMapdata;
+			}
+			
+			private function getPow2(num:int):int
+			{
+				var temp:int=1;
+				while(temp<num)
+				{
+					temp*=2;
+				}
+				return temp;
+			}
+			
+			private function onErrorHandler(evt:IOErrorEvent):void
+			{
+				var loadInfo:LoaderInfo=evt.target as LoaderInfo;
+				loadInfo.removeEventListener(Event.COMPLETE,onCompleteHandler);
+				loadInfo.removeEventListener(IOErrorEvent.IO_ERROR,onErrorHandler);
+			}
+			
+			private function readFile():ByteArray
+			{
+				var byte:ByteArray=new ByteArray();
+				var fileStream:FileStream=new FileStream();
+				fileStream.open(openFile,FileMode.READ);
+				fileStream.readBytes(byte,0,fileStream.bytesAvailable);
+				return byte;
+			}
+			
+			private function saveFile(file:File,byte:ByteArray):void
+			{
+				var fileStream:FileStream=new FileStream();
+				fileStream.open(file,FileMode.WRITE);
+				fileStream.writeBytes(byte,0,byte.bytesAvailable);
+				trace("save :",file.name,byte.length);
+				fileStream.close();
+			}
+			
+			
+			private var timer:Timer;
+			private var outText:String="";
+			private function writeText(str:String):void
+			{
+				outText+=str;
+				txtArea.text=outText;
+				txtArea.validateNow();
+				txtArea.scroller.verticalScrollBar.value=txtArea.scroller.verticalScrollBar.maximum;
+			}
+			
+			/*定时滚动滚动条*/
+			private function onTimerHandler(evt:TimerEvent):void
+			{
+				//txtArea.scroller.verticalScrollBar.value=txtArea.scroller.verticalScrollBar.maximum;
+			}
+			
+			/*默认参数恢复*/
+			protected function radiogroup_changeHandler(event:Event):void
+			{
+				// TODO Auto-generated method stub
+				if(radiogroup.selection==rdDXT5)
+				{
+					hslider.value=0;
+				}
+				else if(radiogroup.selection==rgba)
+				{
+					hslider.value=30;
+				}
+				else
+				{
+					hslider.value=0;
+				}
+			}
+			
+			/*清屏*/
+			private function clearComandOut():void
+			{
+				outText="";
+				txtArea.text=outText;
+				txtArea.validateNow();
+			}
+	
+			/*打开文件夹*/
+			private function onSelectFile():void
+			{
+				this.openFileList=File.desktopDirectory;
+			//	var fileFilter:FileFilter=new FileFilter("Images (*.jpg, *.jpeg, *.png)", "*.jpg; *.jpeg;  *.png");
+				openFileList.addEventListener(Event.SELECT,onFileListSelected);
+				openFileList.browseForDirectory("请选择一个文件夹");
+			}
+			
+			private function onFileListSelected(evt:Event):void
+			{
+				popUpAlert();
+				var list:Array=openFileList.getDirectoryListing();
+				for(var i:int=0;i<list.length;i++)
+				{
+					var file:File=list[i];
+					if(file.name.indexOf(".png")>-1||file.name.indexOf(".jpeg")>-1||file.name.indexOf(".jpg")>-1)
+					{
+						trace(file.name);
+						fileList.push(file);
+					}
+					
+				}
+				deCodeNest();
+			}
+			
+			/*编码下一个文件*/
+			private function deCodeNest():void
+			{
+				if(fileList.length)
+				{
+				openFile=fileList.shift() as File;
+			    onSelected();
+				}
+				else
+				{
+				//	deleteTempFile();
+					if(openFileList)
+					writeText("\n文件夹："+openFileList.nativePath+"转换完成");
+					openFileList=null;
+					//timer.stop();
+					
+				}
+			}
+			
+			public function deleteTempFile():void
+			{
+			//	return ;
+				var file:File=new File("d:\\temp\\");
+				var list:Array=file.getDirectoryListing();
+				for(var i:int=0;i<list.length;i++)
+				{
+					if(File(list[i]).name.indexOf(".temp")>-1||File(list[i]).name.indexOf(".atf")>-1)
+					{
+						File(list[i]).deleteFile();
+						trace("删除文件零时文件:"+list[i].name);
+					}
+					
+				}
+			}
+			
+			/*  swf文件转换*/
+			private function onSelectSwfFile():void
+			{
+				swfOpenFile=File.desktopDirectory;
+				var fileFilter:FileFilter=new FileFilter("SWF (*.swf)", "*.swf");
+				swfOpenFile.browseForOpen("选择SWF文件",[fileFilter]);
+				swfOpenFile.addEventListener(Event.SELECT,onSwfSelected);
+				openFile=swfOpenFile;
+			}
+			
+			
+		//	private var alert:
+			private function onSwfSelected(evt:Event):void
+			{
+				var byteArray:ByteArray=new ByteArray();
+				var fileStream:FileStream=new FileStream();
+				fileStream.open(swfOpenFile,FileMode.READ);
+				fileStream.readBytes(byteArray,0,fileStream.bytesAvailable);
+			
+				var loader:Loader=new Loader();
+				var loaderComtext:LoaderContext=new LoaderContext(false,null,null);
+				loaderComtext.allowCodeImport=true;
+				loader.loadBytes(byteArray,loaderComtext);
+				loader.contentLoaderInfo.addEventListener(Event.COMPLETE,onSwfLoadCompleteHandler);
+				fileStream.close();
+				
+				popUpAlert();
+				
+			}
+			
+			private function popUpAlert():void
+			{
+				if(alert.parent==null)
+				{
+				PopUpManager.addPopUp(alert,this,true);
+				PopUpManager.centerPopUp(alert);
+				}
+			}
+			
+			
+			private function onSwfLoadCompleteHandler(evt:Event):void
+			{
+				var loaderInfo:LoaderInfo=evt.target as LoaderInfo;
+				loaderInfo.removeEventListener(Event.COMPLETE,onSwfLoadCompleteHandler);
+			
+				var mc:MovieClip=MovieClip(loaderInfo.content);
+				loaderInfo.loader.unload();
+                frameList=new Vector.<FrameData>();
+	
+				for(var i:int=1;i<=mc.totalFrames;i++)
+				{
+					var bitmapData:BitmapData;
+					mc.gotoAndStop(i);
+					var rect:Rectangle=mc.getBounds(mc);
+					if(rect.width==0||rect.height==0)
+					{
+						bitmapData=new BitmapData(1,1,true,0);
+					}
+					else
+					{
+						bitmapData=new BitmapData(rect.width,rect.height,true,0);
+					}
+					bitmapData.draw(mc,new Matrix(1,0,0,1,-rect.x,-rect.y));
+					
+					var frameData:FrameData=new FrameData();
+					frameData.x=rect.x;
+					frameData.y=rect.y;
+					frameData.width=rect.width;
+					frameData.height=rect.height;
+					frameData.bitmapdata=bitmapData;
+					frameList.push(frameData);
+				}
+				decodeSwftoAtf(frameList);
+			}
+			
+			
+			private var frameWriteByte:ByteArray;
+		
+			/* 生成图片编码序列*/
+			private function decodeSwftoAtf(list:Vector.<FrameData>):void
+			{
+				if(frameDataList==null)
+					frameDataList=new Array();
+				
+				if(list.length)
+				{
+					/////单个组装
+				var frameData:FrameData=list.shift();
+				frameWriteByte=new ByteArray();
+				//frameWriteByte.writeUTFBytes("bmp");
+				frameWriteByte.writeInt(frameDataList.length); /////第几帧
+				frameWriteByte.writeInt(frameData.x);
+				frameWriteByte.writeInt(frameData.y);
+				frameWriteByte.writeInt(frameData.width);
+				frameWriteByte.writeInt(frameData.height);
+				frameDataList.push(frameWriteByte);
+				changeBitmapDataToAtf(frameData.bitmapdata);
+				}
+				else  /////整体组装 
+				{
+					if(frameDataList.length)  /////生成封装的AATF格式
+					{
+					var byte:ByteArray=new ByteArray();
+					byte.writeObject(frameDataList);
+				
+					var file:File=openFile;
+					var saveFile:File=new File(file.nativePath.substr(0,file.nativePath.lastIndexOf("."))+".aatf");
+					var stream:FileStream=new FileStream();
+						stream.open(saveFile,FileMode.WRITE);
+						stream.writeBytes(byte);
+						stream.close();
+					    writeText("\n"+"保存文件成功："+saveFile.nativePath);
+						frameDataList=new Array();
+						PopUpManager.removePopUp(alert);
+					}
+				}
+			}
+		]]>
+	</fx:Script>
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+		<s:RadioButtonGroup id="radiogroup" change="radiogroup_changeHandler(event)"/>
+	</fx:Declarations>
+	<s:VGroup width="100%" height="100%">
+	<s:HGroup y="5" x="5" gap="10">
+		<s:RadioButton label="RGAB" id="rgba" group="{radiogroup}" selected="false" />
+		<s:RadioButton label="DXT5" id="rdDXT5" group="{radiogroup}" selected="true"/>
+		<s:RadioButton label="JPEG" id="jpeg" group="{radiogroup}"/>
+		<s:HGroup paddingTop="5" width="180">
+		<s:Label text="图片质量" />
+		<s:HSlider id="hslider" value="0" minimum="0" maximum="180"/>
+		<s:Label text="{hslider.value}" y="10"/>
+		</s:HGroup>
+		<s:CheckBox id="selectMimap" label="是否启用Mimap" selected="false"/>
+		<s:CheckBox id="checkBox" label="启用JPEG-XR+LZMA压缩" selected="true"/>
+		<s:Button label="清屏" click="clearComandOut()"/>
+		<s:Button label="单张图片"  click="onSingerClick()"/>
+		<s:Button  label="图片文件夹" click="onSelectFile()"/>
+		<s:Button  label="SWF" click="onSelectSwfFile()"/>
+	<!--	<s:Button label="swf文件夹"/>-->
+	</s:HGroup>
+		<s:TextArea id="txtArea" verticalScrollPolicy="auto"  width="100%" height="100%" editable="false" fontSize="13" text="欢迎使用ATF转换工具！ "  contentBackgroundColor="0" color="0xffffff"/>
+	</s:VGroup>
+</s:WindowedApplication>

@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009"
+		 xmlns:s="library://ns.adobe.com/flex/spark"
+		 xmlns:mx="library://ns.adobe.com/flex/mx" mouseChildren="false" mouseEnabledWhereTransparent="false" mouseEnabled="false">
+	<fx:Script>
+		<![CDATA[
+			
+			public function set text(str:String):void
+			{
+				txt.text=str;
+			}	
+		]]>
+	</fx:Script>
+
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+	</fx:Declarations>
+	<s:VGroup>
+		<s:TextArea id="txt" width="100%" text="    正在转换文件,请耐心等待。。。" contentBackgroundAlpha="0" fontSize="15" height="30" color="#ffff00" borderVisible="false" textAlign="center">
+		</s:TextArea>
+	<s:Image source="@Embed(source='test1.png')"/>
+	</s:VGroup>
+</s:Group>
