@@ -5,9 +5,9 @@
 	
 	<fx:Script>
 		<![CDATA[
-			import flash.utils.getTimer;
+			import flash.utils.ByteArray;
+			import flash.utils.Timer;
 			
-			import mx.graphics.codec.PNGEncoder;
 			import mx.managers.PopUpManager;
 			
 			
