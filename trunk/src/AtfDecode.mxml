@@ -118,9 +118,9 @@
 				var _loc_3:String = null;
 				if (param1.exists)
 				{
-					//_loc_3 = "png2atf <?format?> <?-R?> <?mimap?>  -q " + int(this.hslider.value) + " -i  " + param1.nativePath + "  -o  " + this.getSaveFileName(param1);
+					_loc_3 = "png2atf <?format?> <?-R?> <?mimap?>  -q " + int(this.hslider.value) + " -i  " + param1.nativePath + "  -o  " + this.getSaveFileName(param1);
 
-					_loc_3 = "png2atf <?format?> <?-R?> -i  " + param1.nativePath + "  -o  " + this.getSaveFileName(param1);
+				//	_loc_3 = "png2atf <?format?> <?-R?> -i  " + param1.nativePath + "  -o  " + this.getSaveFileName(param1);
 					if (this.checkBox.selected)
 					{
 						_loc_3 = _loc_3.split("<?-R?>").join("-r");
@@ -141,14 +141,14 @@
 					{
 						_loc_3 = _loc_3.split("<?format?>").join("");
 					}
-				/*	if(this.selectMimap.selected==false)  ////是否生成Mimap
+					if(this.selectMimap.selected==false)  ////是否生成Mimap
 					{
 						_loc_3 =_loc_3.split("<?mimap?>").join(" -n 0,0 ");
 					}
 					else
 					{
 						_loc_3 =_loc_3.split("<?mimap?>").join("");
-					}*/
+					}
 					this.runCommand(_loc_3);
 					;
 				}
